@@ -44,7 +44,7 @@ function createApp() {
         console.error('product check skipped: products unreachable');
       }
     }
-    const order = { id: 'o' + Date.now(), productId, qty, status: 'created' };
+    const order = { id: `o${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, productId, qty, status: 'created' };
     orders.push(order);
     fireKafka({ type: 'orders.created', ...order });
     res.status(201).json(order);

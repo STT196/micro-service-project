@@ -21,8 +21,13 @@ async function createApp({ store } = {}) {
   app.post('/products', async (req, res) => {
     const { name, price } = req.body || {};
     if (!name || typeof price !== 'number') return res.status(400).json({ error: 'name and numeric price required' });
-    const p = { id: 'p' + Date.now(), name, price };
-    await store.add(p);
+    // Date.now() alone collides under concurrent load (same-ms ids break the PK) - add entropy.
+    const p = { id: `p${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name, price };
+    try {
+      await store.add(p);
+    } catch {
+      return res.status(500).json({ error: 'store unavailable' });
+    }
     res.status(201).json(p);
   });
   return app;
