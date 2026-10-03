@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications
+  labels:
+    {{- include "shop-learn.labels" . | nindent 4 }}
+    app.kubernetes.io/component: notifications
+spec:
+  # No broker -> nothing to consume; scale to zero instead of crash-looping.
+  replicas: {{ if .Values.kafka.enabled }}{{ .Values.notifications.replicaCount }}{{ else }}0{{ end }}
+  selector:
+    matchLabels:
+      {{- include "shop-learn.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: notifications
+  template:
+    metadata:
+      labels:
+        {{- include "shop-learn.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: notifications
+    spec:
+      containers:
+        - name: notifications
+          image: "{{ .Values.notifications.image.repository }}:{{ default .Values.image.tag .Values.notifications.image.tag }}"
+          imagePullPolicy: {{ .Values.notifications.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.notifications.service.port }}
+          env:
+            - name: PORT
+              value: {{ .Values.notifications.service.port | quote }}
+            {{- if .Values.kafka.enabled }}
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shop-learn.fullname" . }}-config
+                  key: KAFKA_BROKERS
+            - name: KAFKA_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shop-learn.fullname" . }}-config
+                  key: KAFKA_TOPIC
+            - name: KAFKA_GROUP
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shop-learn.fullname" . }}-config
+                  key: KAFKA_GROUP
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.notifications.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.notifications.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: {{ .Values.notifications.resources.limits.cpu | quote }}
+              memory: {{ .Values.notifications.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ .Values.notifications.resources.requests.cpu | quote }}
+              memory: {{ .Values.notifications.resources.requests.memory | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications
+  labels:
+    {{- include "shop-learn.labels" . | nindent 4 }}
+    app.kubernetes.io/component: notifications
+spec:
+  type: {{ .Values.notifications.service.type }}
+  ports:
+    - port: {{ .Values.notifications.service.port }}
+      targetPort: {{ .Values.notifications.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "shop-learn.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: notifications

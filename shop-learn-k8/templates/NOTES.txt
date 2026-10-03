@@ -1,0 +1,2 @@
+Gateway: {{ include "shop-learn.fullname" . }}-gateway:{{ .Values.gateway.service.port }}
+kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "shop-learn.fullname" . }}-gateway {{ .Values.gateway.service.port }}:{{ .Values.gateway.service.port }}

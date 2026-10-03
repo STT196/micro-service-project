@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "shop-learn.fullname" . }}-config
+  labels:
+    {{- include "shop-learn.labels" . | nindent 4 }}
+data:
+  PRODUCTS_URL: {{ .Values.config.productsUrl | quote }}
+  ORDERS_URL: {{ .Values.config.ordersUrl | quote }}
+  KAFKA_BROKERS: {{ .Values.config.kafkaBrokers | quote }}
+  KAFKA_TOPIC: {{ .Values.config.kafkaTopic | quote }}
+  KAFKA_GROUP: {{ .Values.config.kafkaGroup | quote }}

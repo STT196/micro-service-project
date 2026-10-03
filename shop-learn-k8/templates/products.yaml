@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products
+  labels:
+    {{- include "shop-learn.labels" . | nindent 4 }}
+    app.kubernetes.io/component: products
+spec:
+  replicas: {{ .Values.products.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "shop-learn.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: products
+  template:
+    metadata:
+      labels:
+        {{- include "shop-learn.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: products
+    spec:
+      containers:
+        - name: products
+          image: "{{ .Values.products.image.repository }}:{{ default .Values.image.tag .Values.products.image.tag }}"
+          imagePullPolicy: {{ .Values.products.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.products.service.port }}
+          env:
+            - name: PORT
+              value: {{ .Values.products.service.port | quote }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.products.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.products.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: {{ .Values.products.resources.limits.cpu | quote }}
+              memory: {{ .Values.products.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ .Values.products.resources.requests.cpu | quote }}
+              memory: {{ .Values.products.resources.requests.memory | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products
+  labels:
+    {{- include "shop-learn.labels" . | nindent 4 }}
+    app.kubernetes.io/component: products
+spec:
+  type: {{ .Values.products.service.type }}
+  ports:
+    - port: {{ .Values.products.service.port }}
+      targetPort: {{ .Values.products.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "shop-learn.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: products

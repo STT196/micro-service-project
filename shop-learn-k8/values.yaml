@@ -1,0 +1,106 @@
+image:
+  tag: "latest"
+
+ingress:
+  host: shop.local
+  # traefik is what's installed in this cluster; --set ingress.className=nginx where NGINX is available
+  className: traefik
+
+kafka:
+  enabled: true
+
+config:
+  productsUrl: "http://products:3001"
+  ordersUrl: "http://orders:3002"
+  kafkaBrokers: "kafka:9092"
+  kafkaTopic: "orders.created"
+  kafkaGroup: "notifications"
+
+gateway:
+  replicaCount: 2
+  image:
+    repository: "microserviceproject-gateway"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+products:
+  replicaCount: 2
+  image:
+    repository: "microserviceproject-products"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3001
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+orders:
+  replicaCount: 1
+  image:
+    repository: "microserviceproject-orders"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3002
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+notifications:
+  replicaCount: 1
+  image:
+    repository: "microserviceproject-notifications"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3003
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+postgres:
+  port: 5432
+  # Leave empty to auto-generate a random password on first install
+  # (preserved across upgrades). Or set explicitly / via
+  # --set postgres.password=... (preferred over committing it here).
+  password: ""
+  storage: 1Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+redis:
+  port: 6379
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;padding:0 1rem}section{border:1px solid #ddd;border-radius:8px;padding:1rem;margin-bottom:1rem}input,select,button{padding:.4rem;margin:.2rem}ul{padding-left:1.2rem}.err{color:#b00}</style>
+</head>
+<body>
+<h1>Shop</h1>
+<p class="err" id="err"></p>
+<section><h2>Products</h2><ul id="products"></ul>
+<form id="addp"><input id="pname" placeholder="name" required><input id="pprice" type="number" min="0" step="0.01" placeholder="price" required><button>Add product</button></form></section>
+<section><h2>New order</h2>
+<form id="addo"><select id="opid" required></select><input id="oqty" type="number" min="1" value="1" required><button>Place order</button></form></section>
+<section><h2>Orders</h2><ul id="orders"></ul></section>
+<script>
+const err = (m) => document.getElementById('err').textContent = m || '';
+async function load() {
+  err('');
+  try {
+    const [ps, os] = await Promise.all([
+      fetch('/api/products').then(r => r.json()),
+      fetch('/api/orders').then(r => r.json())
+    ]);
+    document.getElementById('products').innerHTML = ps.map(p => `<li>${p.name} — $${p.price} <small>(${p.id})</small></li>`).join('');
+    document.getElementById('opid').innerHTML = ps.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    document.getElementById('orders').innerHTML = os.map(o => `<li>${o.qty}× ${o.productId} <small>(${o.id}, ${o.status})</small></li>`).join('');
+  } catch { err('backend unreachable'); }
+}
+document.getElementById('addp').onsubmit = async (e) => {
+  e.preventDefault();
+  const r = await fetch('/api/products', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: pname.value, price: Number(pprice.value) }) });
+  if (!r.ok) return err('add product failed');
+  pname.value = pprice.value = ''; load();
+};
+document.getElementById('addo').onsubmit = async (e) => {
+  e.preventDefault();
+  const r = await fetch('/api/orders', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ productId: opid.value, qty: Number(oqty.value) }) });
+  if (!r.ok) return err('order failed');
+  load();
+};
+load();
+</script>
+</body>
+</html>

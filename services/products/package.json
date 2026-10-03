@@ -1,0 +1,1 @@
+{"dependencies": {"express": "^4.19.2"}, "main": "src/index.js", "name": "products", "private": true, "scripts": {"start": "node src/index.js", "test": "node --test test/*.test.js"}, "version": "1.0.0"}

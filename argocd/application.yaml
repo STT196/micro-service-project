@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shop-learn
+  namespace: argocd
+spec:
+  project: default
+  # TODO: replace with your manifests repo URL after pushing, e.g.
+  # https://github.com/<you>/microserviceproject.git
+  source:
+    repoURL: "REPLACE_WITH_YOUR_REPO_URL"
+    targetRevision: HEAD
+    path: shop-learn-k8
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shop-learn
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
