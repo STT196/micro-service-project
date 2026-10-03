@@ -8,7 +8,7 @@ spec:
   # TODO: replace with your manifests repo URL after pushing, e.g.
   # https://github.com/<you>/microserviceproject.git
   source:
-    repoURL: "REPLACE_WITH_YOUR_REPO_URL"
+    repoURL: "https://github.com/STT196/micro-service-project"
     targetRevision: HEAD
     path: shop-learn-k8
     helm:
