@@ -82,11 +82,8 @@ notifications:
 
 postgres:
   port: 5432
-  # Pinned (not auto-generated): the password is baked into the PG data dir
-  # on first init, so it must be stable across renders. A random password
-  # that rotates would lock every client out (28P01) with no self-healing.
-  # Dev-cluster only — use ESO/Vault for anything real.
-  password: "dev-shop-postgres-2026"
+  # No password here: credentials live in templates/sealedsecret.yaml
+  # (encrypted, only this cluster can decrypt). Re-seal to rotate.
   storage: 1Gi
   resources:
     limits:

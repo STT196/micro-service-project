@@ -17,7 +17,7 @@ spec:
         {{- include "shop-learn.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: products
       annotations:
-        checksum/secret: {{ include "shop-learn.postgresPassword" . | sha256sum }}
+        checksum/secret: {{ include "shop-learn.pgSecretChecksum" . | sha256sum }}
     spec:
       containers:
         - name: products

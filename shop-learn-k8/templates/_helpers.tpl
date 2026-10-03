@@ -51,20 +51,16 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Resolve the Postgres password: explicit value wins, else reuse the live
-Secret (survives upgrades), else generate once. Single source of truth
-for secret.yaml and the checksum/* annotations.
+Checksum of the SealedSecret's encrypted payload. Changes only when the
+secret is re-sealed, so consumers restart exactly then - and never on a
+spurious render. "initial-install" before the first sync (lookup miss).
 */}}
-{{- define "shop-learn.postgresPassword" -}}
-{{- $secretName := printf "%s-postgres" (include "shop-learn.fullname" .) -}}
-{{- $existing := lookup "v1" "Secret" .Release.Namespace $secretName -}}
-{{- $pwd := .Values.postgres.password | default "" -}}
-{{- if $pwd -}}
-{{- $pwd -}}
-{{- else if $existing -}}
-{{- index $existing.data "POSTGRES_PASSWORD" | b64dec -}}
+{{- define "shop-learn.pgSecretChecksum" -}}
+{{- $ss := lookup "sealedsecrets.bitnami.com/v1alpha1" "SealedSecret" .Release.Namespace (printf "%s-postgres" (include "shop-learn.fullname" .)) -}}
+{{- if $ss -}}
+{{- toJson $ss.spec.encryptedData | sha256sum -}}
 {{- else -}}
-{{- randAlphaNum 24 -}}
+{{- "initial-install" -}}
 {{- end -}}
 {{- end -}}
 
