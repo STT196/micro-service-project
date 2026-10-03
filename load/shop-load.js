@@ -20,8 +20,8 @@ export default function () {
   check(r, { 'products 200': (x) => x.status === 200 });
 
   const name = `k6-${__VU}-${Date.now()}`;
-  r = http.post(`${BASE}/api/products`, JSON.stringify({ name, price: 10 },
-    { headers: { 'content-type': 'application/json' } }));
+  r = http.post(`${BASE}/api/products`, JSON.stringify({ name, price: 10 }),
+    { headers: { 'content-type': 'application/json' } });
   check(r, { 'add product 201': (x) => x.status === 201 });
 
   const pid = r.status === 201 ? r.json().id : 'p1';
