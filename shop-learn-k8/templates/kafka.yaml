@@ -59,6 +59,16 @@ spec:
               value: "1@localhost:9093"
             - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
               value: "true"
+            # Single-node KRaft: everything must tolerate RF=1 or the
+            # __consumer_offsets topic never elects a coordinator.
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+              value: "1"
           volumeMounts:
             - name: data
               mountPath: /var/lib/kafka/data
