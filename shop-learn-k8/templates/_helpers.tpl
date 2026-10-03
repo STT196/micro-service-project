@@ -51,6 +51,24 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Resolve the Postgres password: explicit value wins, else reuse the live
+Secret (survives upgrades), else generate once. Single source of truth
+for secret.yaml and the checksum/* annotations.
+*/}}
+{{- define "shop-learn.postgresPassword" -}}
+{{- $secretName := printf "%s-postgres" (include "shop-learn.fullname" .) -}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace $secretName -}}
+{{- $pwd := .Values.postgres.password | default "" -}}
+{{- if $pwd -}}
+{{- $pwd -}}
+{{- else if $existing -}}
+{{- index $existing.data "POSTGRES_PASSWORD" | b64dec -}}
+{{- else -}}
+{{- randAlphaNum 24 -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "shop-learn.serviceAccountName" -}}
